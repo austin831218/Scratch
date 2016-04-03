@@ -66,6 +66,13 @@ namespace OAuth2.API.Services
                 });
         }
 
+        public async Task<bool> RemoveRefreshToken(string refreshTokenId)
+        {
+            return await _repo.ExecuteAsync("DELETE FROM dbo.RefreshToken WHERE Id = @RefreshTokenId",
+                new { RefreshTokenId = refreshTokenId });
+        }
+
+
         public async Task<bool> RemoveRefreshToken(RefreshToken refreshToken)
         {
             return await _repo.ExecuteAsync("DELETE FROM dbo.RefreshToken WHERE ClientId = @ClientID AND Subject = @Subject",

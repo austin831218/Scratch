@@ -62,9 +62,23 @@ namespace OAuth2.API.Providers
             throw new NotImplementedException();
         }
 
-        public Task ReceiveAsync(AuthenticationTokenReceiveContext context)
+        public async Task ReceiveAsync(AuthenticationTokenReceiveContext context)
         {
-            throw new NotImplementedException();
+            var allowedOrigin = context.OwinContext.Get<string>("as:clientAllowedOrigin");
+            context.OwinContext.Response.Headers.Add("Access-Control-Allow-Origin", new[] { allowedOrigin });
+
+            string hashedTokenId = Hash.MD5(context.Token);
+
+
+            var refreshToken = await _userService.FindRefreshToken(hashedTokenId);
+
+            if (refreshToken != null)
+            {
+                //Get protectedTicket from refreshToken class
+                context.DeserializeTicket(refreshToken.ProtectedTicket);
+                var result = await _userService.RemoveRefreshToken(hashedTokenId);
+            }
+
         }
     }
 }
