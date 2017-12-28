@@ -49,22 +49,25 @@ namespace OAuth2.API.Providers
                 return;
             }
 
-            if (client.ApplicationType == ApplicationTypes.Native)
-            {
-                if (string.IsNullOrWhiteSpace(clientSecret))
-                {
-                    context.SetError("invalid_clientId", "Client secret should be sent.");
-                    return;
-                }
-                else
-                {
-                    if (client.Secret != Hash.MD5(clientSecret))
-                    {
-                        context.SetError("invalid_clientId", "Client secret is invalid.");
-                        return;
-                    }
-                }
-            }
+            //context.OwinContext.Set("ApplicationType", client.ApplicationType);
+            //save client's applicaton type for indicating what login logic should be performed in grand token method.
+            //for different kinds of user login (e.g. - end users on app / administritors on web site
+            //if (client.ApplicationType == ApplicationTypes.Native)
+            //{
+            //    if (string.IsNullOrWhiteSpace(clientSecret))
+            //    {
+            //        context.SetError("invalid_clientId", "Client secret should be sent.");
+            //        return;
+            //    }
+            //    else
+            //    {
+            //        if (client.Secret != Hash.MD5(clientSecret))
+            //        {
+            //            context.SetError("invalid_clientId", "Client secret is invalid.");
+            //            return;
+            //        }
+            //    }
+            //}
 
             if (!client.Active)
             {
@@ -85,7 +88,6 @@ namespace OAuth2.API.Providers
             if (allowedOrigin == null) allowedOrigin = "*";
 
             context.OwinContext.Response.Headers.Add("Access-Control-Allow-Origin", new[] { allowedOrigin });
-
 
             var user = await _userService.Login(context.UserName, context.Password);
 

@@ -39,7 +39,7 @@ namespace OAuth2.API.Providers
             {
                 Id = Hash.MD5(refreshTokenId),
                 ClientId = clientid,
-                Subject = context.Ticket.Identity.Name,
+                Identity = context.Ticket.Identity.Name,
                 IssuedUtc = DateTime.UtcNow,
                 ExpiresUtc = DateTime.UtcNow.AddMinutes(Convert.ToDouble(refreshTokenLifeTime))
             };

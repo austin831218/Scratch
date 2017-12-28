@@ -29,6 +29,10 @@ namespace OAuth2.API.Repositories
                         await sqlConn.OpenAsync();
                     return await sqlConn.QueryAsync<T>(strSql, sqlParms, sqlTrans);
                 }
+                catch(Exception ex)
+                {
+                    throw;
+                }
                 finally
                 {
                     if (sqlTrans != null)

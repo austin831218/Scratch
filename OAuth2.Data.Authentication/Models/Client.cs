@@ -8,10 +8,11 @@ namespace OAuth2.Data.Authentication.Models
 {
     public class Client
     {
-        public string Id { get; set; }
+        public Guid Id { get; set; }
         public string Secret { get; set; }
         public string Name { get; set; }
-        public ApplicationTypes ApplicationType { get; set; }
+        //public ApplicationTypes ApplicationType { get; set; }
+        public string ClientType { get; set; }
         public bool Active { get; set; }
         public int RefreshTokenLiftTime { get; set; }
         public string AllowedOrigin { get; set; }

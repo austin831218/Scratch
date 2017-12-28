@@ -17,17 +17,17 @@ namespace OAuth2.API.Services
         }
         public async Task<bool> Register(UserModel user)
         {
-            var result = await _repo.QueryAsync<int>("SELECT COUNT(1) FROM dbo.[User] WHERE UserName = @UserName",
+            var result = await _repo.QueryAsync<int>("SELECT COUNT(1) FROM dbo.[Users] WHERE UserName = @UserName",
                 new { UserName = user.UserName });
             if (result.First() > 0)
                 throw new ArgumentException("user has existed");
             else
-                return await _repo.ExecuteAsync("INSERT INTO dbo.[User] VALUES(@UserName, @Password)", new { UserName = user.UserName, Password = user.Password });
+                return await _repo.ExecuteAsync("INSERT INTO dbo.[Users] VALUES(@UserId, @UserName, @Password)", new { UserId = Guid.NewGuid(), UserName = user.UserName, Password = user.Password });
         }
 
-        public async Task<AuthenticatedUser> Login(string userName, string password)
+        public async Task<User> Login(string userName, string password)
         {
-            var result = await _repo.QueryAsync<AuthenticatedUser>("SELECT * FROM dbo.[User] WHERE UserName = @UserName AND Password = @Password",
+            var result = await _repo.QueryAsync<User>("SELECT * FROM dbo.[Users] WHERE UserName = @UserName AND Password = @Password",
                 new { UserName = userName, Password = password });
             if (result.Count() < 0)
                 throw new ArgumentException("bad username or password");
@@ -37,7 +37,7 @@ namespace OAuth2.API.Services
 
         public async Task<Client> FindClient(string clientId)
         {
-            var clients = await _repo.QueryAsync<Client>("SELECT * FROM dbo.Client WHERE Id = @ClientId",
+            var clients = await _repo.QueryAsync<Client>("SELECT * FROM dbo.Clients WHERE Id = @ClientId",
                 new { ClientId = clientId });
 
             return clients.FirstOrDefault();
@@ -45,8 +45,8 @@ namespace OAuth2.API.Services
 
         public async Task<bool> AddRefreshToken(RefreshToken token)
         {
-            var tokens = await _repo.QueryAsync<RefreshToken>("SELECT * FROM dbo.RefreshToken WHERE Subject=@Subject AND ClientId=@ClientId",
-                new { Subject = token.Subject, ClientId = token.ClientId });
+            var tokens = await _repo.QueryAsync<RefreshToken>("SELECT * FROM dbo.RefreshTokens WHERE [Identity]=@Identity AND ClientId=@ClientId",
+                new { Identity = token.Identity, ClientId = token.ClientId });
 
             var existingToken = tokens.FirstOrDefault();
             if (existingToken != null)
@@ -54,11 +54,11 @@ namespace OAuth2.API.Services
                 var result = await RemoveRefreshToken(existingToken);
             }
 
-            return await _repo.ExecuteAsync("INSERT INTO dbo.RefreshToken VALUES(@Id, @Subject, @ClientId, @IssuedUtc, @ExpiresUtc, @ProtectedTicket)",
+            return await _repo.ExecuteAsync("INSERT INTO dbo.RefreshTokens VALUES(@Id, @Identity, @ClientId, @IssuedUtc, @ExpiresUtc, @ProtectedTicket)",
                 new
                 {
                     Id = token.Id,
-                    Subject = token.Subject,
+                    Identity = token.Identity,
                     ClientId = token.ClientId,
                     IssuedUtc = token.IssuedUtc,
                     ExpiresUtc = token.ExpiresUtc,
@@ -68,26 +68,26 @@ namespace OAuth2.API.Services
 
         public async Task<bool> RemoveRefreshToken(string refreshTokenId)
         {
-            return await _repo.ExecuteAsync("DELETE FROM dbo.RefreshToken WHERE Id = @RefreshTokenId",
+            return await _repo.ExecuteAsync("DELETE FROM dbo.RefreshTokens WHERE Id = @RefreshTokenId",
                 new { RefreshTokenId = refreshTokenId });
         }
 
 
         public async Task<bool> RemoveRefreshToken(RefreshToken refreshToken)
         {
-            return await _repo.ExecuteAsync("DELETE FROM dbo.RefreshToken WHERE ClientId = @ClientID AND Subject = @Subject",
-                new { Subject = refreshToken.Subject, ClientId = refreshToken.ClientId });
+            return await _repo.ExecuteAsync("DELETE FROM dbo.RefreshTokens WHERE ClientId = @ClientID AND [Identity] = @Identity",
+                new { Identity = refreshToken.Identity, ClientId = refreshToken.ClientId });
         }
 
         public async Task<RefreshToken> FindRefreshToken(string refreshTokenId)
         {
-            var tokens = await _repo.QueryAsync<RefreshToken>("SELECT * FROM dbo.RefreshToken WHERE Id = @RefreshTokenId", new { RefreshTokenId = refreshTokenId });
+            var tokens = await _repo.QueryAsync<RefreshToken>("SELECT * FROM dbo.RefreshTokens WHERE Id = @RefreshTokenId", new { RefreshTokenId = refreshTokenId });
             return tokens.FirstOrDefault();
         }
 
         public async Task<IEnumerable<RefreshToken>> GetAllRefreshTokens()
         {
-            return await _repo.QueryAsync<RefreshToken>("SELECT * FROM dbo.RefreshToken");
+            return await _repo.QueryAsync<RefreshToken>("SELECT * FROM dbo.RefreshTokens");
         }
     }
 }
